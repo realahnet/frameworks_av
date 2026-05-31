@@ -59,6 +59,11 @@
 
 #include "common/CameraProviderExtension.h"
 
+#ifdef TARGET_SHIPS_OPLUS_CAM
+#include "CameraServiceExtFactory.h"
+#include "ICameraServiceExt.h"
+#endif
+
 namespace android {
 
 using namespace ::android::hardware::camera;
@@ -546,7 +551,13 @@ status_t CameraProviderManager::getCameraCharacteristics(const std::string &id,
     std::lock_guard<std::mutex> lock(mInterfaceMutex);
     return getCameraCharacteristicsLocked(id, overrideForPerfClass, characteristics, compatInfo);
 }
-
+#ifdef TARGET_SHIPS_OPLUS_CAM
+status_t CameraProviderManager::getCameraCharacteristics( const std::string &id, bool overrideForPerfClass,
+        CameraMetadata* characteristics, int /*unused*/) const {
+    return getCameraCharacteristics(id, overrideForPerfClass, characteristics,
+            CameraCompatibilityInfo());
+}
+#endif
 status_t CameraProviderManager::getHighestSupportedVersion(const std::string &id,
         hardware::hidl_version *v, IPCTransport *transport) {
     if (v == nullptr || transport == nullptr) {

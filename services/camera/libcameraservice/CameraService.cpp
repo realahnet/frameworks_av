@@ -90,6 +90,10 @@
 #include "utils/TagMonitor.h"
 #include "utils/Utils.h"
 
+#ifdef TARGET_SHIPS_OPLUS_CAM
+#include "ext/include/CameraServiceExtFactory.h"
+#endif
+
 namespace {
     const char* kActivityServiceName = "activity";
     const char* kSensorPrivacyServiceName = "sensor_privacy";
@@ -4132,6 +4136,13 @@ status_t CameraService::onTransact(uint32_t code, const Parcel& data, Parcel* re
             return NO_ERROR;
         }
     }
+
+#ifdef TARGET_SHIPS_OPLUS_CAM
+    // Let the extension handle it first
+    if (CameraServiceExtFactory::onTransact(code, data, reply, flags) == 0) {
+        return NO_ERROR;
+    }
+#endif
 
     return BnCameraService::onTransact(code, data, reply, flags);
 }
