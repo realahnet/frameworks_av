@@ -152,7 +152,10 @@ cc_library {
         "-Wall",
         "-Werror",
         "-Wextra",
-    ],
+    ] + select(soong_config_variable("camera", "target_ships_oplus_cam"), {
+        any @ value: ["-DTARGET_SHIPS_OPLUS_CAM"],
+        default: [],
+    }),
 }
 
 cc_library_host_static {
