@@ -284,6 +284,12 @@ const int CameraSessionStats::CAMERA_STATE_ACTIVE = 1;
 const int CameraSessionStats::CAMERA_STATE_IDLE = 2;
 const int CameraSessionStats::CAMERA_STATE_CLOSED = 3;
 
+#ifdef TARGET_SHIPS_OPLUS_CAM
+const int CameraSessionStats::CAMERA_STATE_EXCEPTION = 4;
+const int CameraSessionStats::CAMERA_STATE_SESSION_CONFIGURED = 5;
+const int CameraSessionStats::CAMERA_STATE_FIRST_FRAME_ARRIVED = 6;
+#endif
+
 const int CameraSessionStats::CAMERA_FACING_BACK = 0;
 const int CameraSessionStats::CAMERA_FACING_FRONT = 1;
 const int CameraSessionStats::CAMERA_FACING_EXTERNAL = 2;

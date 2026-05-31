@@ -215,7 +215,13 @@ cc_library {
         "utils/LatencyHistogram.cpp",
         "utils/Utils.cpp",
         "utils/VirtualDeviceCameraIdMapper.cpp",
-    ],
+    ] + select(soong_config_variable("camera", "target_ships_oplus_cam"), {
+        any @ value: [
+            "ext/ICameraServiceExt.cpp",
+            "ext/CameraServiceExtFactory.cpp",
+        ],
+        default: [],
+    }),
 
     header_libs: [
         "libdynamic_depth-internal_headers",
@@ -237,7 +243,12 @@ cc_library {
     include_dirs: [
         "system/media/private/camera/include",
         "frameworks/native/include/media/openmax",
-    ],
+    ] + select(soong_config_variable("camera", "target_ships_oplus_cam"), {
+        any @ value: [
+            "frameworks/av/services/camera/libcameraservice/ext/include",
+        ],
+        default: [],
+    }),
 
     export_include_dirs: ["."],
 
@@ -251,6 +262,11 @@ cc_library {
         default: [],
     }) + select(soong_config_variable("cameraservice", "bypass_pixelmode"), {
         any @ value: ["-DBYPASS_PIXELMODE"],
+        default: [],
+    }) + select(soong_config_variable("camera", "target_ships_oplus_cam"), {
+        any @ value: [
+            "-DTARGET_SHIPS_OPLUS_CAM"
+        ],
         default: [],
     }),
 }
