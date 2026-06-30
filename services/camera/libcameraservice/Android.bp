@@ -263,6 +263,9 @@ cc_library {
     }) + select(soong_config_variable("cameraservice", "bypass_pixelmode"), {
         any @ value: ["-DBYPASS_PIXELMODE"],
         default: [],
+    }) + select(soong_config_variable("cameraservice", "allow_nonincreasing_timestamps"), {
+        any @ value: ["-DALLOW_NONINCREASING_TIMESTAMPS"],
+        default: [],
     }) + select(soong_config_variable("camera", "target_ships_oplus_cam"), {
         any @ value: [
             "-DTARGET_SHIPS_OPLUS_CAM"
