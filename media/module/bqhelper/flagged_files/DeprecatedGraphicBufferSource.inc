@@ -350,6 +350,9 @@ GraphicBufferSource::GraphicBufferSource() :
 
     BufferQueue::createBufferQueue(&mProducer, &mConsumer);
     mConsumer->setConsumerName(name);
+    // A camera may want more than 64 buffers here (dodge does at 1080p60). Surface then extends
+    // the slot count, which fails and aborts the camera session unless the consumer allows it.
+    mConsumer->allowUnlimitedSlots(true);
 
     // create the consumer listener interface, and hold sp so that this
     // interface lives as long as the GraphicBufferSource.
@@ -1060,27 +1063,27 @@ void GraphicBufferSource::onBufferAcquired_l(const VideoBuffer &buffer) {
 void GraphicBufferSource::onBuffersReleased() {
     Mutex::Autolock lock(mMutex);
 
-    uint64_t slotMask;
-    uint64_t releaseMask;
-    if (mConsumer->getReleasedBuffers(&releaseMask) != NO_ERROR) {
-        slotMask = 0xffffffffffffffffULL;
+    // Slots can go past 64 now, so a 64-bit mask would miss the extended ones.
+    std::vector<bool> released;
+    if (mConsumer->getReleasedBuffersExtended(&released) != NO_ERROR) {
         ALOGW("onBuffersReleased: unable to get released buffer set");
-    } else {
-        slotMask = releaseMask;
-        ALOGV("onBuffersReleased: 0x%016" PRIx64, slotMask);
+        released.assign(BufferQueue::NUM_BUFFER_SLOTS, true);
+        for (size_t i = 0; i < mBufferSlots.size(); i++) {
+            size_t slot = mBufferSlots.keyAt(i);
+            if (slot >= released.size()) {
+                released.resize(slot + 1, true);
+            }
+        }
     }
 
     AString unpopulated;
-    for (int i = 0; i < BufferQueue::NUM_BUFFER_SLOTS; i++) {
-        if ((slotMask & 0x01) != 0) {
-            if (!discardBufferInSlot_l(i)) {
-                if (!unpopulated.empty()) {
-                    unpopulated.append(", ");
-                }
-                unpopulated.append(i);
+    for (size_t i = 0; i < released.size(); i++) {
+        if (released[i] && !discardBufferInSlot_l(i)) {
+            if (!unpopulated.empty()) {
+                unpopulated.append(", ");
             }
+            unpopulated.append((int)i);
         }
-        slotMask >>= 1;
     }
     if (!unpopulated.empty()) {
         ALOGW("released unpopulated slots: [%s]", unpopulated.c_str());
