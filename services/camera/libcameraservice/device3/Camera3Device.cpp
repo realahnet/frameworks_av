@@ -81,6 +81,7 @@
 #include "utils/Utils.h"
 
 #include <algorithm>
+#include <cstring>
 #include <optional>
 #include <tuple>
 
@@ -100,7 +101,19 @@ namespace {
 bool shouldInjectFakeStream(const CameraMetadata& info) {
     // Do not inject fake stream for a virtual camera (i.e., camera belonging to virtual devices),
     // as it can handle zero streams properly.
-    return getDeviceId(info) == kDefaultDeviceId;
+    if (getDeviceId(info) != kDefaultDeviceId) {
+        return false;
+    }
+    std::string pkg = CameraService::getCurrPackageName();
+    if (pkg == "com.oplus.camera") {
+        return false;
+    }
+    char skipUnconfigVal[PROPERTY_VALUE_MAX];
+    property_get("vendor.camera.skip_unconfigure.packagelist", skipUnconfigVal, "");
+    if (skipUnconfigVal[0] != '\0' && !pkg.empty() && strstr(skipUnconfigVal, pkg.c_str()) != nullptr) {
+        return false;
+    }
+    return true;
 }
 
 } // namespace
